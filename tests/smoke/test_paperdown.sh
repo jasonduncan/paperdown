@@ -14,3 +14,4 @@ printf 'existing file\n' > "$tmp_dir/basic.pdf"
 test -f "$tmp_dir/basic.pdf"
 test -f "$tmp_dir/basic-1.pdf"
 test -f "$tmp_dir/rich-content.pdf"
+pdfinfo "$tmp_dir/rich-content.pdf" | rg '^Subject: +paperdown-report$'

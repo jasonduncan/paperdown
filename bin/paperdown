@@ -6,6 +6,7 @@ style="report"
 log_dir="${HOME}/Library/Logs/paperdown"
 mkdir -p "$log_dir"
 log_file="$log_dir/paperdown-$(date +%Y%m%d-%H%M%S).log"
+template_file="$repo_root/templates/document.tex"
 
 usage() {
   cat <<'EOF'
@@ -65,6 +66,19 @@ skipped=0
 echo "style=${style}" >> "$log_file"
 echo "repo_root=${repo_root}" >> "$log_file"
 
+style_file="$repo_root/styles/${style}.yaml"
+if [[ ! -f "$template_file" ]]; then
+  echo "Missing template: $template_file" >&2
+  echo "missing_template=$template_file" >> "$log_file"
+  exit 1
+fi
+
+if [[ ! -f "$style_file" ]]; then
+  echo "Unknown style: $style" >&2
+  echo "missing_style=$style_file" >> "$log_file"
+  exit 1
+fi
+
 for input_path in "${inputs[@]}"; do
   if [[ "$input_path" != *.md ]]; then
     skipped=$((skipped + 1))
@@ -77,6 +91,8 @@ for input_path in "${inputs[@]}"; do
   if pandoc "$input_path" \
     --from markdown \
     --pdf-engine=xelatex \
+    --template "$template_file" \
+    --metadata-file "$style_file" \
     -o "$output_path" >>"$log_file" 2>&1; then
     converted=$((converted + 1))
     echo "converted=$input_path -> $output_path" >> "$log_file"
