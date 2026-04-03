@@ -59,7 +59,7 @@
         <key>ActionParameters</key>
         <dict>
           <key>COMMAND_STRING</key>
-          <string>/Users/jason/Development/Projects/paperdown/bin/paperdown-quick-action "$@"</string>
+          <string>__PAPERDOWN_REPO_ROOT__/bin/paperdown-quick-action "$@"</string>
           <key>CheckedForUserDefaultShell</key>
           <true/>
           <key>inputMethod</key>
