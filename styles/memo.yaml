@@ -1,0 +1,36 @@
+documentclass: article
+fontsize: 11pt
+papersize: letter
+geometry:
+  - top=0.9in
+  - bottom=0.95in
+  - left=1in
+  - right=1in
+mainfont: Palatino
+sansfont: Helvetica
+monofont: Menlo
+linestretch: 1.08
+colorlinks: true
+linkcolor: NavyBlue
+urlcolor: NavyBlue
+subject: paperdown-memo
+header-includes:
+  - |
+    \usepackage{fancyhdr}
+    \definecolor{PaperdownAccent}{HTML}{2D3E50}
+    \definecolor{PaperdownMuted}{HTML}{677381}
+    \makeatletter
+    \renewcommand{\maketitle}{
+      \begin{flushleft}
+      {\color{PaperdownAccent}\LARGE\bfseries\@title\par}
+      \vspace{0.5em}
+      {\color{PaperdownMuted}\normalsize\@author\par}
+      {\color{PaperdownMuted}\small\@date\par}
+      \end{flushleft}
+      \vspace{0.9em}
+    }
+    \makeatother
+    \pagestyle{fancy}
+    \fancyhf{}
+    \fancyfoot[R]{\color{PaperdownMuted}\thepage}
+    \renewcommand{\headrulewidth}{0pt}

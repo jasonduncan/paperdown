@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+title="paperdown"
+
+notify() {
+  local message="$1"
+  local escaped="${message//\\/\\\\}"
+  escaped="${escaped//\"/\\\"}"
+  /usr/bin/osascript -e "display notification \"${escaped}\" with title \"${title}\"" >/dev/null 2>&1 || true
+}
+
+show_error() {
+  local message="$1"
+  local escaped="${message//\\/\\\\}"
+  escaped="${escaped//\"/\\\"}"
+  /usr/bin/osascript -e "display dialog \"${escaped}\" buttons {\"OK\"} default button \"OK\" with title \"${title}\"" >/dev/null 2>&1 || true
+}
+
+if [[ $# -eq 0 ]]; then
+  show_error "No Markdown files were provided to the Quick Action."
+  exit 1
+fi
+
+set +e
+output="$("$repo_root/bin/paperdown" "$@" 2>&1)"
+status=$?
+set -e
+
+summary="${output//$'\n'/ }"
+summary="${summary:0:220}"
+
+if [[ "$status" -eq 0 ]]; then
+  notify "$summary"
+  exit 0
+fi
+
+show_error "$summary"
+exit "$status"

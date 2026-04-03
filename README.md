@@ -23,9 +23,21 @@ comfortable reading Markdown directly.
 - `pandoc`
 - `xelatex`
 
+## Styles
+
+The v1 Finder workflow installs a single document style:
+
+- `report` is the default and only Finder-exposed style in v1
+
+The repo also reserves future presets so menu expansion does not require a
+structural rewrite:
+
+- `memo`
+- `handout`
+
 ## Build
 
-No buildable artifact exists yet.
+No compiled build step is required.
 
 Implementation details and the planned file structure live in:
 
@@ -34,21 +46,46 @@ Implementation details and the planned file structure live in:
 
 ## Test
 
-No automated test suite exists yet.
+Run the shell smoke test:
 
-The first implementation slice will add smoke tests for:
+```bash
+bash tests/smoke/test_paperdown.sh
+```
+
+Current smoke coverage:
 
 - single-file conversion
 - multi-file conversion
 - filename collision handling
-- representative Markdown fixtures
+- mixed-selection skipping
+- report-style metadata verification
 
 ## Run
 
-No runnable command or installed Quick Action exists yet.
+Direct converter:
 
-The intended runtime entry points are:
+```bash
+./bin/paperdown path/to/file.md
+./bin/paperdown path/to/one.md path/to/two.md
+```
 
-- a local converter command in this repo
-- an installable Finder Quick Action that invokes the converter with the
-  default `report` style
+Quick Action wrapper:
+
+```bash
+./bin/paperdown-quick-action path/to/file.md
+```
+
+Finder Quick Action install:
+
+```bash
+mkdir -p ~/Library/Services
+rm -rf "$HOME/Library/Services/Convert Markdown to PDF.workflow"
+cp -R "macos/quick-actions/Convert Markdown to PDF.workflow" "$HOME/Library/Services/"
+/System/Library/CoreServices/pbs -flush 2>/dev/null || true
+```
+
+The installed Finder action invokes the default `report` style.
+
+See:
+
+- `docs/install/macos-quick-action.md`
