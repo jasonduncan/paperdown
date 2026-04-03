@@ -1,0 +1,36 @@
+documentclass: article
+fontsize: 10pt
+papersize: letter
+geometry:
+  - top=0.75in
+  - bottom=0.8in
+  - left=0.85in
+  - right=0.85in
+mainfont: Helvetica
+sansfont: Helvetica
+monofont: Menlo
+linestretch: 1.0
+colorlinks: true
+linkcolor: NavyBlue
+urlcolor: NavyBlue
+subject: paperdown-handout
+header-includes:
+  - |
+    \usepackage{fancyhdr}
+    \definecolor{PaperdownAccent}{HTML}{12324F}
+    \definecolor{PaperdownMuted}{HTML}{6A7684}
+    \makeatletter
+    \renewcommand{\maketitle}{
+      \begin{flushleft}
+      {\color{PaperdownAccent}\Large\bfseries\@title\par}
+      \vspace{0.35em}
+      {\color{PaperdownMuted}\small\@author\ifx\@date\@empty\else\ --- \@date\fi\par}
+      \end{flushleft}
+      \vspace{0.6em}
+    }
+    \renewcommand\section{\@startsection{section}{1}{\z@}{-2.0ex \@plus -0.8ex \@minus -.2ex}{0.5ex \@plus .2ex}{\normalfont\Large\bfseries\color{PaperdownAccent}}}
+    \makeatother
+    \pagestyle{fancy}
+    \fancyhf{}
+    \fancyfoot[C]{\color{PaperdownMuted}\thepage}
+    \renewcommand{\headrulewidth}{0pt}

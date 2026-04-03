@@ -23,6 +23,18 @@ comfortable reading Markdown directly.
 - `pandoc`
 - `xelatex`
 
+## Styles
+
+The v1 Finder workflow installs a single document style:
+
+- `report` is the default and only Finder-exposed style in v1
+
+The repo also reserves future presets so menu expansion does not require a
+structural rewrite:
+
+- `memo`
+- `handout`
+
 ## Build
 
 No buildable artifact exists yet.
