@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+style="report"
+log_dir="${HOME}/Library/Logs/paperdown"
+mkdir -p "$log_dir"
+log_file="$log_dir/paperdown-$(date +%Y%m%d-%H%M%S).log"
+
+usage() {
+  cat <<'EOF'
+Usage: paperdown [--style STYLE] file1.md [file2.md ...]
+EOF
+}
+
+next_output_path() {
+  local source_path="$1"
+  local base="${source_path%.md}"
+  local candidate="${base}.pdf"
+  local n=1
+
+  while [[ -e "$candidate" ]]; do
+    candidate="${base}-${n}.pdf"
+    n=$((n + 1))
+  done
+
+  printf '%s\n' "$candidate"
+}
+
+inputs=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --style)
+      shift
+      if [[ $# -eq 0 ]]; then
+        echo "--style requires a value" >&2
+        exit 2
+      fi
+      style="$1"
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    --*)
+      echo "Unknown option: $1" >&2
+      exit 2
+      ;;
+    *)
+      inputs+=("$1")
+      ;;
+  esac
+  shift
+done
+
+if [[ "${#inputs[@]}" -eq 0 ]]; then
+  usage >&2
+  exit 2
+fi
+
+converted=0
+failed=0
+skipped=0
+
+echo "style=${style}" >> "$log_file"
+echo "repo_root=${repo_root}" >> "$log_file"
+
+for input_path in "${inputs[@]}"; do
+  if [[ "$input_path" != *.md ]]; then
+    skipped=$((skipped + 1))
+    echo "skipped=$input_path" >> "$log_file"
+    continue
+  fi
+
+  output_path="$(next_output_path "$input_path")"
+
+  if pandoc "$input_path" \
+    --from markdown \
+    --pdf-engine=xelatex \
+    -o "$output_path" >>"$log_file" 2>&1; then
+    converted=$((converted + 1))
+    echo "converted=$input_path -> $output_path" >> "$log_file"
+  else
+    failed=$((failed + 1))
+    echo "failed=$input_path" >> "$log_file"
+  fi
+done
+
+printf 'converted %d, failed %d, skipped %d\n' "$converted" "$failed" "$skipped"
+
+if [[ "$failed" -gt 0 ]]; then
+  exit 1
+fi
