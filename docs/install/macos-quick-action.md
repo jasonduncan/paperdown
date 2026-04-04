@@ -14,6 +14,8 @@ Mac, install them before using the Quick Action.
 
 - Converter: `bin/paperdown`
 - Quick Action wrapper: `bin/paperdown-quick-action`
+- Installer: `scripts/install-quick-action.sh`
+- Uninstaller: `scripts/uninstall-quick-action.sh`
 - Versioned workflow bundle:
   - `macos/quick-actions/Convert Markdown to PDF.workflow`
 
@@ -22,17 +24,23 @@ Mac, install them before using the Quick Action.
 From the repo root:
 
 ```bash
-mkdir -p ~/Library/Services
-rm -rf "$HOME/Library/Services/Convert Markdown to PDF.workflow"
-cp -R "macos/quick-actions/Convert Markdown to PDF.workflow" "$HOME/Library/Services/"
-/System/Library/CoreServices/pbs -flush 2>/dev/null || true
+./scripts/install-quick-action.sh
 ```
 
-This installs the Finder Quick Action into the per-user Services directory.
+This installs the Finder Quick Action into the per-user Services directory and
+rewrites the workflow bundle so it points at the current repo path.
+
+## Uninstall the Quick Action
+
+From the repo root:
+
+```bash
+./scripts/uninstall-quick-action.sh
+```
 
 ## Reinstall After Workflow Changes
 
-Run the same install commands again after editing the workflow bundle.
+Run the installer again after editing the workflow bundle.
 
 If Finder still shows an old version:
 
@@ -43,6 +51,19 @@ killall Finder 2>/dev/null || true
 
 If the menu entry is still missing after that, log out and back in to refresh
 macOS Services registration.
+
+If Finder says the Service is not configured correctly, reinstall the workflow
+from the repo root:
+
+```bash
+./scripts/install-quick-action.sh
+```
+
+Then restart Finder once:
+
+```bash
+killall Finder 2>/dev/null || true
+```
 
 ## Use From Finder
 
@@ -65,6 +86,7 @@ Direct converter:
 ```bash
 ./bin/paperdown path/to/file.md
 ./bin/paperdown path/to/one.md path/to/two.md
+./bin/paperdown --style memo path/to/file.md
 ```
 
 Quick Action wrapper:
@@ -75,6 +97,9 @@ Quick Action wrapper:
 
 The wrapper is intended for the Automator workflow and adds macOS notifications
 on top of the normal converter.
+
+The Finder Quick Action itself stays fixed to the `report` style in v1. The
+other bundled styles are currently intended for shell-based use.
 
 ## Logs
 
@@ -92,13 +117,23 @@ fails or the Finder action shows an error dialog.
 You can verify the versioned workflow without using Finder:
 
 ```bash
+tmpservices=$(mktemp -d)
+./scripts/install-quick-action.sh --services-dir "$tmpservices"
 tmpdir=$(mktemp -d)
 cp tests/fixtures/basic.md "$tmpdir/basic.md"
-automator -i "$tmpdir/basic.md" "$HOME/Library/Services/Convert Markdown to PDF.workflow"
+automator -i "$tmpdir/basic.md" "$tmpservices/Convert Markdown to PDF.workflow"
 ls "$tmpdir"
+./scripts/uninstall-quick-action.sh --services-dir "$tmpservices"
+rm -rf "$tmpservices"
 rm -rf "$tmpdir"
 ```
 
 Expected result:
 
 - `basic.pdf` appears beside `basic.md`
+
+You can also validate the workflow metadata directly:
+
+```bash
+bash tests/smoke/test_quick_action_metadata.sh
+```

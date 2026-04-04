@@ -21,7 +21,7 @@
           <true/>
           <key>Types</key>
           <array>
-            <string>com.apple.cocoa.string</string>
+            <string>com.apple.cocoa.path</string>
           </array>
         </dict>
         <key>AMActionVersion</key>
@@ -49,7 +49,7 @@
           <string>List</string>
           <key>Types</key>
           <array>
-            <string>com.apple.cocoa.string</string>
+            <string>com.apple.cocoa.path</string>
           </array>
         </dict>
         <key>ActionBundlePath</key>
@@ -184,7 +184,7 @@
   <key>workflowMetaData</key>
   <dict>
     <key>serviceInputTypeIdentifier</key>
-    <string>com.apple.Automator.fileSystemObject.text</string>
+    <string>com.apple.Automator.fileSystemObject</string>
     <key>serviceOutputTypeIdentifier</key>
     <string>com.apple.Automator.nothing</string>
     <key>serviceProcessesInput</key>

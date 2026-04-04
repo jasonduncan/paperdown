@@ -5,9 +5,12 @@ Finder.
 
 ## Status
 
-Bootstrap repository. The approved design spec and the first implementation
-plan are checked in; the converter and Finder Quick Action are not implemented
-yet.
+Implemented v1:
+
+- shell converter for one or more Markdown files
+- document-style PDF rendering via `pandoc` + `xelatex`
+- macOS Finder Quick Action wrapper
+- scripted Quick Action install and uninstall helpers
 
 ## Goal
 
@@ -25,15 +28,13 @@ comfortable reading Markdown directly.
 
 ## Styles
 
-The v1 Finder workflow installs a single document style:
+Available converter styles:
 
-- `report` is the default and only Finder-exposed style in v1
-
-The repo also reserves future presets so menu expansion does not require a
-structural rewrite:
-
+- `report`
 - `memo`
 - `handout`
+
+The Finder Quick Action stays fixed to `report` in v1.
 
 ## Build
 
@@ -50,6 +51,7 @@ Run the shell smoke test:
 
 ```bash
 bash tests/smoke/test_paperdown.sh
+bash tests/smoke/test_quick_action_metadata.sh
 ```
 
 Current smoke coverage:
@@ -59,6 +61,10 @@ Current smoke coverage:
 - filename collision handling
 - mixed-selection skipping
 - report-style metadata verification
+- stripped-down Finder-style environment handling
+- Quick Action Finder-service metadata validation
+- Quick Action install and uninstall
+- headless Automator execution through an installed workflow
 
 ## Run
 
@@ -67,6 +73,7 @@ Direct converter:
 ```bash
 ./bin/paperdown path/to/file.md
 ./bin/paperdown path/to/one.md path/to/two.md
+./bin/paperdown --style memo path/to/file.md
 ```
 
 Quick Action wrapper:
@@ -78,13 +85,17 @@ Quick Action wrapper:
 Finder Quick Action install:
 
 ```bash
-mkdir -p ~/Library/Services
-rm -rf "$HOME/Library/Services/Convert Markdown to PDF.workflow"
-cp -R "macos/quick-actions/Convert Markdown to PDF.workflow" "$HOME/Library/Services/"
-/System/Library/CoreServices/pbs -flush 2>/dev/null || true
+./scripts/install-quick-action.sh
 ```
 
-The installed Finder action invokes the default `report` style.
+Finder Quick Action uninstall:
+
+```bash
+./scripts/uninstall-quick-action.sh
+```
+
+The installed Finder action invokes the default `report` style, while shell use
+can select any supported style with `--style`.
 
 See:
 

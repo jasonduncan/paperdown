@@ -19,8 +19,7 @@
       </dict>
       <key>NSSendFileTypes</key>
       <array>
-        <string>net.daringfireball.markdown</string>
-        <string>public.plain-text</string>
+        <string>public.item</string>
       </array>
     </dict>
   </array>
