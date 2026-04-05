@@ -16,8 +16,8 @@ Mac, install them before using the Quick Action.
 - Quick Action wrapper: `bin/paperdown-quick-action`
 - Installer: `scripts/install-quick-action.sh`
 - Uninstaller: `scripts/uninstall-quick-action.sh`
-- Versioned workflow bundle:
-  - `macos/quick-actions/Convert Markdown to PDF.workflow`
+- Action manifests: `macos/quick-actions/actions/`
+- Generated workflow bundles: `macos/quick-actions/generated/`
 
 ## Install the Quick Action
 
@@ -27,8 +27,9 @@ From the repo root:
 ./scripts/install-quick-action.sh
 ```
 
-This installs the Finder Quick Action into the per-user Services directory and
-rewrites the workflow bundle so it points at the current repo path.
+This installs the full `paperdown` Finder action set into the per-user Services
+directory and rewrites each workflow bundle so it points at the current repo
+path.
 
 ## Uninstall the Quick Action
 
@@ -40,7 +41,7 @@ From the repo root:
 
 ## Reinstall After Workflow Changes
 
-Run the installer again after editing the workflow bundle.
+Run the installer again after editing any workflow bundle.
 
 If Finder still shows an old version:
 
@@ -70,36 +71,51 @@ killall Finder 2>/dev/null || true
 1. Select one or more Markdown files in Finder.
 2. Right-click.
 3. Open `Quick Actions` if needed.
-4. Choose `Convert Markdown to PDF`.
+4. Choose one of:
+   - `Convert to PDF (Report)`
+   - `Convert to PDF (Memo)`
+   - `Convert to PDF (Handout)`
+   - `Merge to PDF (Packet)`
+   - `Merge to PDF (Compiled)`
 
 Expected behavior:
 
-- one PDF is written beside each selected Markdown file
+- convert actions write one PDF beside each selected Markdown file
+- merge actions write one merged PDF beside the first selected Markdown file
 - existing PDFs are preserved by creating `-1`, `-2`, and higher suffixes
 - non-Markdown files are skipped
 - a notification or dialog summarizes the result
+
+Merge mode behavior:
+
+- `Packet` concatenates the selected Markdown files in Finder order with page
+  breaks between documents
+- `Compiled` creates one publication-style document in Finder order, derives its
+  title from the first selected file, and includes a table of contents
 
 ## Use From the Shell
 
 Direct converter:
 
 ```bash
-./bin/paperdown path/to/file.md
-./bin/paperdown path/to/one.md path/to/two.md
-./bin/paperdown --style memo path/to/file.md
+./bin/paperdown convert --style report path/to/file.md
+./bin/paperdown convert --style memo path/to/one.md path/to/two.md
+./bin/paperdown merge --mode packet --style report path/to/one.md path/to/two.md
+./bin/paperdown merge --mode compiled --style report path/to/one.md path/to/two.md
 ```
 
 Quick Action wrapper:
 
 ```bash
-./bin/paperdown-quick-action path/to/file.md
+./bin/paperdown-quick-action convert --style report path/to/file.md
+./bin/paperdown-quick-action merge --mode compiled --style report path/to/one.md path/to/two.md
 ```
 
 The wrapper is intended for the Automator workflow and adds macOS notifications
 on top of the normal converter.
 
-The Finder Quick Action itself stays fixed to the `report` style in v1. The
-other bundled styles are currently intended for shell-based use.
+The wrapper is primarily for Automator workflow execution. Finder normally calls
+it through one of the installed workflow bundles with fixed arguments.
 
 ## Logs
 
@@ -121,7 +137,10 @@ tmpservices=$(mktemp -d)
 ./scripts/install-quick-action.sh --services-dir "$tmpservices"
 tmpdir=$(mktemp -d)
 cp tests/fixtures/basic.md "$tmpdir/basic.md"
-automator -i "$tmpdir/basic.md" "$tmpservices/Convert Markdown to PDF.workflow"
+cp tests/fixtures/merge-a.md "$tmpdir/merge-a.md"
+cp tests/fixtures/merge-b.md "$tmpdir/merge-b.md"
+automator -i "$tmpdir/basic.md" "$tmpservices/Convert to PDF (Report).workflow"
+automator -i "$tmpdir/merge-a.md" "$tmpdir/merge-b.md" "$tmpservices/Merge to PDF (Compiled).workflow"
 ls "$tmpdir"
 ./scripts/uninstall-quick-action.sh --services-dir "$tmpservices"
 rm -rf "$tmpservices"
@@ -131,6 +150,7 @@ rm -rf "$tmpdir"
 Expected result:
 
 - `basic.pdf` appears beside `basic.md`
+- `merge-a-compiled.pdf` appears beside `merge-a.md`
 
 You can also validate the workflow metadata directly:
 

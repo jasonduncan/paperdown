@@ -3,7 +3,9 @@ set -euo pipefail
 
 default_services_dir="$HOME/Library/Services"
 services_dir="$default_services_dir"
-workflow_name="Convert Markdown to PDF.workflow"
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+generated_workflows_dir="$repo_root/macos/quick-actions/generated"
+legacy_workflow_name="Convert Markdown to PDF.workflow"
 
 usage() {
   cat <<'EOF'
@@ -34,10 +36,20 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
-rm -rf "$services_dir/$workflow_name"
+if [[ -d "$generated_workflows_dir" ]]; then
+  shopt -s nullglob
+  source_workflows=("$generated_workflows_dir"/*.workflow)
+  shopt -u nullglob
+
+  for source_workflow in "${source_workflows[@]}"; do
+    workflow_name="$(basename "$source_workflow")"
+    rm -rf "$services_dir/$workflow_name"
+    printf 'Removed %s/%s\n' "$services_dir" "$workflow_name"
+  done
+fi
+
+rm -rf "$services_dir/$legacy_workflow_name"
 
 if [[ "$services_dir" == "$default_services_dir" ]]; then
   /System/Library/CoreServices/pbs -flush 2>/dev/null || true
 fi
-
-printf 'Removed %s/%s\n' "$services_dir" "$workflow_name"

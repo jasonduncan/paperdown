@@ -1,0 +1,96 @@
+<h2>What kind of document polish should paperdown optimize first?</h2>
+<p class="subtitle">
+  These are product directions, not final pixel-perfect themes. Pick the one
+  that feels like the best next step for making Markdown output feel like a real
+  document.
+</p>
+
+<div class="cards">
+  <div class="card" data-choice="classic-report" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="display:flex;justify-content:center;padding:16px;background:#d9e3f0;">
+        <div style="width:180px;height:240px;background:#fff;border:1px solid #cfd7e3;box-shadow:0 18px 30px rgba(34,48,73,0.14);padding:18px;display:flex;flex-direction:column;gap:12px;">
+          <div style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#5e6f88;">report</div>
+          <div style="height:2px;width:54px;background:#284b7b;"></div>
+          <div style="font-size:20px;line-height:1.1;font-weight:700;color:#16253b;">Project Notes</div>
+          <div style="font-size:11px;color:#5b6778;">Clear title page, restrained typography, strong tables and code blocks.</div>
+          <div style="margin-top:auto;display:flex;flex-direction:column;gap:7px;">
+            <div style="height:8px;background:#d8dfeb;border-radius:3px;width:94%;"></div>
+            <div style="height:8px;background:#d8dfeb;border-radius:3px;width:86%;"></div>
+            <div style="height:8px;background:#d8dfeb;border-radius:3px;width:91%;"></div>
+            <div style="height:34px;border:1px solid #d3d9e4;background:#f7f9fc;border-radius:4px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. Classic Report</h3>
+      <p>Professional and quiet. Better title pages, cleaner spacing, stronger headers, and more trustworthy-looking PDFs.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="publication" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="display:flex;justify-content:center;padding:16px;background:#efe4d1;">
+        <div style="width:180px;height:240px;background:#fff;border:1px solid #d8ccb4;box-shadow:0 18px 30px rgba(82,55,15,0.16);display:flex;flex-direction:column;">
+          <div style="padding:18px 18px 10px 18px;background:linear-gradient(180deg,#f2ddc3 0%,#f7efe3 100%);border-bottom:1px solid #e0d1bb;">
+            <div style="font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#7a5c35;">compiled edition</div>
+            <div style="margin-top:10px;font-size:20px;line-height:1.06;font-weight:700;color:#2d2115;">Collection</div>
+          </div>
+          <div style="padding:14px 18px;display:flex;flex-direction:column;gap:9px;flex:1;">
+            <div style="font-size:11px;color:#866845;">Cover page, table of contents, section-opening rhythm, running headers.</div>
+            <div style="display:flex;gap:10px;">
+              <div style="width:42px;height:52px;border:1px solid #ddcfbc;background:#faf6ef;"></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:6px;padding-top:3px;">
+                <div style="height:7px;background:#e1d4c3;border-radius:3px;width:78%;"></div>
+                <div style="height:7px;background:#e1d4c3;border-radius:3px;width:92%;"></div>
+                <div style="height:7px;background:#e1d4c3;border-radius:3px;width:70%;"></div>
+              </div>
+            </div>
+            <div style="margin-top:auto;height:56px;background:linear-gradient(135deg,#f7efe4 0%,#f2ddc4 100%);border:1px solid #e1d4c2;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. Compiled Publication</h3>
+      <p>Feels authored, not exported. Cover page, section openers, and more visible structure for multi-file PDFs.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="accessible-handout" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="display:flex;justify-content:center;padding:16px;background:#dce9df;">
+        <div style="width:180px;height:240px;background:#fff;border:1px solid #c9d9cc;box-shadow:0 18px 30px rgba(26,56,36,0.15);padding:18px;display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-size:12px;font-weight:700;color:#21492c;">Meeting Brief</div>
+            <div style="width:44px;height:8px;background:#2e5f3c;border-radius:999px;"></div>
+          </div>
+          <div style="font-size:13px;line-height:1.25;color:#31453a;font-weight:600;">Larger type, wider spacing, stronger contrast, clearer hierarchy.</div>
+          <div style="display:flex;flex-direction:column;gap:9px;margin-top:4px;">
+            <div style="height:10px;background:#d7e2d8;border-radius:4px;width:100%;"></div>
+            <div style="height:10px;background:#d7e2d8;border-radius:4px;width:94%;"></div>
+            <div style="height:10px;background:#d7e2d8;border-radius:4px;width:89%;"></div>
+            <div style="height:10px;background:#d7e2d8;border-radius:4px;width:97%;"></div>
+          </div>
+          <div style="margin-top:auto;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div style="height:42px;background:#eef4ef;border:1px solid #d5dfd7;"></div>
+            <div style="height:42px;background:#eef4ef;border:1px solid #d5dfd7;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. Accessible Handout</h3>
+      <p>Optimized for readability first: bigger type, more whitespace, better contrast, less dense layouts.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <p class="subtitle">
+    Terminal question: which direction should `paperdown` optimize first?
+    Clicking a card records the choice, but just replying in the terminal is
+    enough too.
+  </p>
+</div>

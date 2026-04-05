@@ -1,0 +1,5 @@
+{
+  "workflow_name": "Convert to PDF (Memo)",
+  "bundle_id": "dev.pdlabs.paperdown.quickaction.convert-memo",
+  "command_args": "convert --style memo"
+}

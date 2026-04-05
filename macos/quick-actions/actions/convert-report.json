@@ -1,0 +1,5 @@
+{
+  "workflow_name": "Convert to PDF (Report)",
+  "bundle_id": "dev.pdlabs.paperdown.quickaction.convert-report",
+  "command_args": "convert --style report"
+}

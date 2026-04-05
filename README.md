@@ -5,11 +5,11 @@ Finder.
 
 ## Status
 
-Implemented v1:
+Implemented:
 
-- shell converter for one or more Markdown files
+- shell converter with explicit `convert` and `merge` modes
 - document-style PDF rendering via `pandoc` + `xelatex`
-- macOS Finder Quick Action wrapper
+- Finder Quick Actions for three styles and two merge modes
 - scripted Quick Action install and uninstall helpers
 
 ## Goal
@@ -26,15 +26,26 @@ comfortable reading Markdown directly.
 - `pandoc`
 - `xelatex`
 
-## Styles
+## Styles and Merge Modes
 
-Available converter styles:
+Available styles:
 
 - `report`
 - `memo`
 - `handout`
 
-The Finder Quick Action stays fixed to `report` in v1.
+Available merge modes:
+
+- `packet`
+- `compiled`
+
+Finder exposes:
+
+- `Convert to PDF (Report)`
+- `Convert to PDF (Memo)`
+- `Convert to PDF (Handout)`
+- `Merge to PDF (Packet)`
+- `Merge to PDF (Compiled)`
 
 ## Build
 
@@ -43,7 +54,9 @@ No compiled build step is required.
 Implementation details and the planned file structure live in:
 
 - `docs/specs/2026-04-03-markdown-finder-pdf-tool-design.md`
+- `docs/specs/2026-04-05-paperdown-style-actions-and-merge-design.md`
 - `docs/superpowers/plans/2026-04-03-paperdown-v1.md`
+- `docs/superpowers/plans/2026-04-05-paperdown-style-actions-and-merge.md`
 
 ## Test
 
@@ -52,6 +65,7 @@ Run the shell smoke test:
 ```bash
 bash tests/smoke/test_paperdown.sh
 bash tests/smoke/test_quick_action_metadata.sh
+bash tests/smoke/test_install_quick_action.sh
 ```
 
 Current smoke coverage:
@@ -60,26 +74,32 @@ Current smoke coverage:
 - multi-file conversion
 - filename collision handling
 - mixed-selection skipping
-- report-style metadata verification
+- style selection
+- packet merge output
+- compiled merge output
+- compiled title derivation
+- merged output collision handling
 - stripped-down Finder-style environment handling
 - Quick Action Finder-service metadata validation
-- Quick Action install and uninstall
-- headless Automator execution through an installed workflow
+- Quick Action install and uninstall across the full action set
+- headless Automator execution through installed convert and merge workflows
 
 ## Run
 
 Direct converter:
 
 ```bash
-./bin/paperdown path/to/file.md
-./bin/paperdown path/to/one.md path/to/two.md
-./bin/paperdown --style memo path/to/file.md
+./bin/paperdown convert --style report path/to/file.md
+./bin/paperdown convert --style memo path/to/one.md path/to/two.md
+./bin/paperdown merge --mode packet --style report path/to/one.md path/to/two.md
+./bin/paperdown merge --mode compiled --style report path/to/one.md path/to/two.md
 ```
 
 Quick Action wrapper:
 
 ```bash
-./bin/paperdown-quick-action path/to/file.md
+./bin/paperdown-quick-action convert --style report path/to/file.md
+./bin/paperdown-quick-action merge --mode compiled --style report path/to/one.md path/to/two.md
 ```
 
 Finder Quick Action install:
@@ -95,7 +115,7 @@ Finder Quick Action uninstall:
 ```
 
 The installed Finder action invokes the default `report` style, while shell use
-can select any supported style with `--style`.
+can select any supported style and merge mode directly.
 
 See:
 
