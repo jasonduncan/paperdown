@@ -276,6 +276,10 @@ $highlighting-macros$
 $endif$
 $if(tables)$
 \usepackage{longtable,booktabs,array}
+% pandoc >= 3.3 wraps uncaptioned tables in \def\LTcaptype{none}
+\makeatletter
+\@ifundefined{c@none}{\newcounter{none}}{}
+\makeatother
 $if(multirow)$
 \usepackage{multirow}
 $endif$

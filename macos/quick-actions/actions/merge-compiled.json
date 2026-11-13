@@ -1,0 +1,5 @@
+{
+  "workflow_name": "Merge to PDF (Compiled)",
+  "bundle_id": "dev.pdlabs.paperdown.quickaction.merge-compiled",
+  "command_args": "merge --mode compiled --style report"
+}

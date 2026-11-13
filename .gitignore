@@ -6,3 +6,5 @@ build/
 dist/
 tmp/
 *.log
+.superpowers/
+PaperdownApp/Resources/paperdown-runtime/

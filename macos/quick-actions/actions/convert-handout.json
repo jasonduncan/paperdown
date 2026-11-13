@@ -1,0 +1,5 @@
+{
+  "workflow_name": "Convert to PDF (Handout)",
+  "bundle_id": "dev.pdlabs.paperdown.quickaction.convert-handout",
+  "command_args": "convert --style handout"
+}
