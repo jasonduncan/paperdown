@@ -90,27 +90,30 @@ Messages:
   - Notary profile 'paperdown' is not configured.
 ```
 
+## Update — 2026-11-13
+
+- Fixed Finder Quick Action failures on documents with tables
+  (`LaTeX Error: No counter 'none' defined`). Cause: pandoc 3.3+ emits
+  `\def\LTcaptype{none}` for uncaptioned tables and the custom
+  `templates/document.tex` lacked `\newcounter{none}`. It appeared after a
+  newer pandoc landed in `/opt/homebrew`, not because of the macOS update.
+- `bin/paperdown` now prefers `~/homebrew/bin/pandoc` (the primary Homebrew on
+  this Mac) over `/opt/homebrew`, since Finder's minimal `PATH` decides which
+  install is used.
+- Verified with pandoc 3.2, 3.10.1, and 3.13 across report, memo, and handout
+  styles; `tests/smoke/test_paperdown.sh` passes.
+- Committed all previously uncommitted work (`9747e91`).
+- Moved hosting from `git.pdlabs.dev` to GitHub (see Current Git State).
+
 ## Current Git State
 
-The working tree is intentionally dirty because the user previously asked to ignore git for the moment.
+As of 2026-11-13 the working tree is clean and everything is committed.
 
-Current branch:
-
-```text
-codex/paperdown-v1...origin/codex/paperdown-v1
-```
-
-Current summary:
-
-- 16 tracked files modified.
-- 47 untracked files.
-- `git diff --stat` for tracked files currently reports:
-
-```text
-16 files changed, 392 insertions(+), 32 deletions(-)
-```
-
-Important: `git diff --stat` does not include the 47 untracked files, which include the native app, packaging scripts, typst templates, new tests, and release helper scripts.
+- Remote: `origin` → `git@github.com:jasonduncan/paperdown.git` (private).
+  The old `git.pdlabs.dev` remote was removed locally; the copy on that server
+  is stale and was not modified.
+- Branches: `main` (default) and `codex/paperdown-v1`, which is ahead of `main`
+  and still needs a PR to merge.
 
 ## Known Blockers
 

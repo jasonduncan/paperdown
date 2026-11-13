@@ -26,6 +26,28 @@ Repo-local development still depends on:
 The packaged app does not depend on host-installed `pandoc`, `xelatex`, or
 `typst`; it carries its own runtime.
 
+### How the repo runtime finds its tools
+
+Finder runs Quick Actions with a minimal `PATH` (no shell profile), so the
+binary your terminal uses is not necessarily the one Finder uses.
+`bin/paperdown` first tries `command -v`, then falls back to fixed paths in
+this order:
+
+- `pandoc`: `~/homebrew/bin/pandoc`, `/opt/homebrew/bin/pandoc`,
+  `/usr/local/bin/pandoc`
+- `xelatex`: `/Library/TeX/texbin/xelatex` (MacTeX), `/opt/homebrew/bin/xelatex`,
+  `/usr/local/bin/xelatex`
+
+To pin a specific binary, set `PAPERDOWN_PANDOC_BIN` or
+`PAPERDOWN_PDF_ENGINE_BIN`. Every run logs the resolved `pandoc_bin` and
+`pdf_engine_bin`, so check the log first when Finder and the terminal behave
+differently.
+
+`templates/document.tex` is a customized copy of pandoc's LaTeX template and is
+tested with pandoc 3.2 through 3.13. After a pandoc upgrade, compare it with
+`pandoc --print-default-data-file templates/common.latex` for new preamble
+definitions.
+
 ## Repo Paths
 
 - Converter: `bin/paperdown`
@@ -179,6 +201,18 @@ Conversion logs are written to:
 
 Each run creates a timestamped log file. Use the newest log when a conversion
 fails or the Finder action shows an error dialog.
+
+## Troubleshooting
+
+**Works from the terminal but fails from Finder.** Compare `pandoc_bin` in the
+newest log with `which pandoc` in your shell. If they differ, Finder is using a
+different install (see "How the repo runtime finds its tools" above).
+
+**`LaTeX Error: No counter 'none' defined` on documents with tables.** pandoc
+3.3 and later wrap uncaptioned tables in `\def\LTcaptype{none}`, which needs a
+matching `\newcounter{none}` in the template. `templates/document.tex` defines
+it as of 2026-11-13; if you see this error, the template has lost that line or
+an older copy of the repo is installed.
 
 ## Headless Verification
 
