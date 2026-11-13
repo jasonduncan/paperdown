@@ -1,14 +1,30 @@
 # macOS Quick Action Install Guide
 
+## Primary Path
+
+The packaged app is now the primary install and repair path. Build one locally
+from the repo with:
+
+```bash
+./Packaging/export-app.sh
+```
+
+Then follow:
+
+- packaged app guide: `docs/install/packaged-app.md`
+
+This document remains the repo/development path for local testing, smoke runs,
+and workflow editing.
+
 ## Prerequisites
 
-`paperdown` depends on:
+Repo-local development still depends on:
 
 - `pandoc`
 - `xelatex`
 
-Both are already present in Jason's current development environment. On another
-Mac, install them before using the Quick Action.
+The packaged app does not depend on host-installed `pandoc`, `xelatex`, or
+`typst`; it carries its own runtime.
 
 ## Repo Paths
 
@@ -31,17 +47,34 @@ This installs the full `paperdown` Finder action set into the per-user Services
 directory and rewrites each workflow bundle so it points at the current repo
 path.
 
+For a staged or packaged runtime, point the installer at the runtime root
+instead of the repo root:
+
+```bash
+./scripts/install-quick-action.sh \
+  --runtime-root "$HOME/Library/Application Support/paperdown/paperdown-runtime"
+```
+
 ## Uninstall the Quick Action
 
 From the repo root:
 
 ```bash
 ./scripts/uninstall-quick-action.sh
+./scripts/uninstall-quick-action.sh \
+  --runtime-root "$HOME/Library/Application Support/paperdown/paperdown-runtime"
 ```
 
 ## Reinstall After Workflow Changes
 
 Run the installer again after editing any workflow bundle.
+
+Run it again after restaging a packaged runtime too:
+
+```bash
+./scripts/install-quick-action.sh \
+  --runtime-root "$HOME/Library/Application Support/paperdown/paperdown-runtime"
+```
 
 If Finder still shows an old version:
 
@@ -117,6 +150,25 @@ on top of the normal converter.
 The wrapper is primarily for Automator workflow execution. Finder normally calls
 it through one of the installed workflow bundles with fixed arguments.
 
+## Settings
+
+The app and runtime share one settings file:
+
+```text
+~/Library/Application Support/paperdown/settings.json
+```
+
+Current global defaults:
+
+- compiled cover page on/off
+- compiled table of contents on/off
+
+You can override the settings file path for shell tests or scripted runs:
+
+```bash
+PAPERDOWN_SETTINGS_FILE=/path/to/settings.json ./bin/paperdown merge --mode compiled --style report path/to/one.md path/to/two.md
+```
+
 ## Logs
 
 Conversion logs are written to:
@@ -145,6 +197,21 @@ ls "$tmpdir"
 ./scripts/uninstall-quick-action.sh --services-dir "$tmpservices"
 rm -rf "$tmpservices"
 rm -rf "$tmpdir"
+```
+
+Packaged-runtime verification path:
+
+```bash
+tmproot=$(mktemp -d)
+runtimeParent="$tmproot/Application Support"
+./Packaging/build-runtime-bundle.sh --output-dir "$runtimeParent" >/dev/null
+./scripts/install-quick-action.sh \
+  --services-dir "$tmproot/Services" \
+  --runtime-root "$runtimeParent/paperdown-runtime"
+./scripts/uninstall-quick-action.sh \
+  --services-dir "$tmproot/Services" \
+  --runtime-root "$runtimeParent/paperdown-runtime"
+rm -rf "$tmproot"
 ```
 
 Expected result:

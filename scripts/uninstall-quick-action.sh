@@ -4,12 +4,19 @@ set -euo pipefail
 default_services_dir="$HOME/Library/Services"
 services_dir="$default_services_dir"
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
-generated_workflows_dir="$repo_root/macos/quick-actions/generated"
+runtime_root=""
 legacy_workflow_name="Convert Markdown to PDF.workflow"
+workflow_names=(
+  "Convert to PDF (Report).workflow"
+  "Convert to PDF (Memo).workflow"
+  "Convert to PDF (Handout).workflow"
+  "Merge to PDF (Packet).workflow"
+  "Merge to PDF (Compiled).workflow"
+)
 
 usage() {
   cat <<'EOF'
-Usage: uninstall-quick-action.sh [--services-dir DIR]
+Usage: uninstall-quick-action.sh [--services-dir DIR] [--runtime-root DIR]
 EOF
 }
 
@@ -22,6 +29,14 @@ while [[ $# -gt 0 ]]; do
         exit 2
       fi
       services_dir="$1"
+      ;;
+    --runtime-root)
+      shift
+      if [[ $# -eq 0 ]]; then
+        echo "--runtime-root requires a value" >&2
+        exit 2
+      fi
+      runtime_root="$1"
       ;;
     --help|-h)
       usage
@@ -36,6 +51,11 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
+generated_workflows_dir="$repo_root/macos/quick-actions/generated"
+if [[ -n "$runtime_root" ]]; then
+  generated_workflows_dir="$runtime_root/macos/quick-actions/generated"
+fi
+
 if [[ -d "$generated_workflows_dir" ]]; then
   shopt -s nullglob
   source_workflows=("$generated_workflows_dir"/*.workflow)
@@ -43,6 +63,11 @@ if [[ -d "$generated_workflows_dir" ]]; then
 
   for source_workflow in "${source_workflows[@]}"; do
     workflow_name="$(basename "$source_workflow")"
+    rm -rf "$services_dir/$workflow_name"
+    printf 'Removed %s/%s\n' "$services_dir" "$workflow_name"
+  done
+else
+  for workflow_name in "${workflow_names[@]}"; do
     rm -rf "$services_dir/$workflow_name"
     printf 'Removed %s/%s\n' "$services_dir" "$workflow_name"
   done

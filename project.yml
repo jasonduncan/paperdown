@@ -1,0 +1,48 @@
+name: Paperdown
+options:
+  bundleIdPrefix: dev.pdlabs
+targets:
+  Paperdown:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: PaperdownApp/App
+    preBuildScripts:
+      - name: Stage Paperdown Runtime
+        script: |
+          set -euo pipefail
+          "$PROJECT_DIR/Packaging/stage-app-runtime.sh" >/dev/null
+        outputFiles:
+          - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/paperdown-runtime/.bundle-stamp
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.pdlabs.paperdown
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Paperdown
+        MARKETING_VERSION: 0.1.0
+        CURRENT_PROJECT_VERSION: 1
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
+        SWIFT_VERSION: 5.0
+        CODE_SIGNING_ALLOWED: NO
+        CODE_SIGNING_REQUIRED: NO
+    scheme:
+      testTargets:
+        - PaperdownTests
+  PaperdownTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: PaperdownAppTests
+    dependencies:
+      - target: Paperdown
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.pdlabs.paperdownTests
+        GENERATE_INFOPLIST_FILE: YES
+        MARKETING_VERSION: 0.1.0
+        CURRENT_PROJECT_VERSION: 1
+        SWIFT_VERSION: 5.0
+        CODE_SIGNING_ALLOWED: NO
+        CODE_SIGNING_REQUIRED: NO

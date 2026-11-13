@@ -21,11 +21,12 @@ assert_workflow() {
   test "$(plutil -extract workflowMetaData.serviceInputTypeIdentifier raw -o - "$workflow_plist")" = "com.apple.Automator.fileSystemObject"
 
   command_string="$(plutil -extract actions.0.action.ActionParameters.COMMAND_STRING raw -o - "$workflow_plist")"
+  printf '%s\n' "$command_string" | rg -F '"__PAPERDOWN_REPO_ROOT__/bin/paperdown-quick-action"'
   printf '%s\n' "$command_string" | rg -F "$expected_command_fragment"
 }
 
-assert_workflow "Convert to PDF (Report)" 'bin/paperdown-quick-action convert --style report "$@"'
-assert_workflow "Convert to PDF (Memo)" 'bin/paperdown-quick-action convert --style memo "$@"'
-assert_workflow "Convert to PDF (Handout)" 'bin/paperdown-quick-action convert --style handout "$@"'
-assert_workflow "Merge to PDF (Packet)" 'bin/paperdown-quick-action merge --mode packet --style report "$@"'
-assert_workflow "Merge to PDF (Compiled)" 'bin/paperdown-quick-action merge --mode compiled --style report "$@"'
+assert_workflow "Convert to PDF (Report)" 'convert --style report "$@"'
+assert_workflow "Convert to PDF (Memo)" 'convert --style memo "$@"'
+assert_workflow "Convert to PDF (Handout)" 'convert --style handout "$@"'
+assert_workflow "Merge to PDF (Packet)" 'merge --mode packet --style report "$@"'
+assert_workflow "Merge to PDF (Compiled)" 'merge --mode compiled --style report "$@"'

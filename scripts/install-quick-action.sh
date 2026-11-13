@@ -4,12 +4,12 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 default_services_dir="$HOME/Library/Services"
 services_dir="$default_services_dir"
-generated_workflows_dir="$repo_root/macos/quick-actions/generated"
+runtime_root="$repo_root"
 legacy_workflow_name="Convert Markdown to PDF.workflow"
 
 usage() {
   cat <<'EOF'
-Usage: install-quick-action.sh [--services-dir DIR]
+Usage: install-quick-action.sh [--services-dir DIR] [--runtime-root DIR]
 EOF
 }
 
@@ -22,6 +22,14 @@ while [[ $# -gt 0 ]]; do
         exit 2
       fi
       services_dir="$1"
+      ;;
+    --runtime-root)
+      shift
+      if [[ $# -eq 0 ]]; then
+        echo "--runtime-root requires a value" >&2
+        exit 2
+      fi
+      runtime_root="$1"
       ;;
     --help|-h)
       usage
@@ -36,13 +44,15 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
+generated_workflows_dir="$runtime_root/macos/quick-actions/generated"
+
 if [[ ! -d "$generated_workflows_dir" ]]; then
   echo "Missing generated workflows directory: $generated_workflows_dir" >&2
   exit 1
 fi
 
 mkdir -p "$services_dir"
-escaped_repo_root="$(printf '%s' "$repo_root" | sed 's/[\/&]/\\&/g')"
+escaped_runtime_root="$(printf '%s' "$runtime_root" | sed 's/[\/&]/\\&/g')"
 
 shopt -s nullglob
 source_workflows=("$generated_workflows_dir"/*.workflow)
@@ -61,7 +71,7 @@ for source_workflow in "${source_workflows[@]}"; do
 
   rm -rf "$target_workflow"
   cp -R "$source_workflow" "$target_workflow"
-  sed -i '' "s/__PAPERDOWN_REPO_ROOT__/$escaped_repo_root/g" \
+  sed -i '' "s/__PAPERDOWN_REPO_ROOT__/$escaped_runtime_root/g" \
     "$target_workflow/Contents/document.wflow"
 
   printf 'Installed %s\n' "$target_workflow"

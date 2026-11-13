@@ -3,10 +3,21 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 style="report"
-log_dir="${HOME}/Library/Logs/paperdown"
+log_dir="${PAPERDOWN_LOG_DIR:-${HOME}/Library/Logs/paperdown}"
+settings_file="${PAPERDOWN_SETTINGS_FILE:-${HOME}/Library/Application Support/paperdown/settings.json}"
 mkdir -p "$log_dir"
 log_file="$log_dir/paperdown-$(date +%Y%m%d-%H%M%S).log"
 template_file="$repo_root/templates/document.tex"
+vendor_bin_dir="$repo_root/vendor/bin"
+runtime_mode="legacy"
+compiled_cover_page_override=""
+compiled_table_of_contents_override=""
+compiled_cover_page_enabled="true"
+compiled_table_of_contents_enabled="true"
+if [[ -d "$vendor_bin_dir" ]]; then
+  runtime_mode="packaged"
+fi
+typst_template_file="$repo_root/templates/typst/paperdown.typ"
 
 resolve_command() {
   local name="$1"
@@ -31,9 +42,35 @@ usage() {
   cat <<'EOF'
 Usage:
   paperdown convert [--style STYLE] file1.md [file2.md ...]
-  paperdown merge --mode MODE [--style STYLE] file1.md [file2.md ...]
+  paperdown merge --mode MODE [--style STYLE] [--cover-page|--no-cover-page] [--table-of-contents|--no-table-of-contents] file1.md [file2.md ...]
   paperdown [--style STYLE] file1.md [file2.md ...]
 EOF
+}
+
+json_bool_or_default() {
+  local key="$1"
+  local default_value="$2"
+  local extracted_value=""
+
+  if [[ ! -f "$settings_file" ]]; then
+    printf '%s\n' "$default_value"
+    return 0
+  fi
+
+  if extracted_value="$(/usr/bin/plutil -extract "$key" raw -o - "$settings_file" 2>/dev/null)"; then
+    case "$extracted_value" in
+      1|true|YES)
+        printf 'true\n'
+        return 0
+        ;;
+      0|false|NO)
+        printf 'false\n'
+        return 0
+        ;;
+    esac
+  fi
+
+  printf '%s\n' "$default_value"
 }
 
 next_pdf_path_for_base() {
@@ -135,6 +172,51 @@ render_pdf() {
   local output_path="$2"
   shift 2
 
+  if [[ "$runtime_mode" == "packaged" ]]; then
+    local -a packaged_args=()
+    local typst_style_file="$repo_root/templates/typst/${style}.typ"
+
+    case "$style" in
+      report|memo)
+        packaged_args=(
+          -V papersize=us-letter
+          -V mainfont=Palatino
+          -V sansfont=Helvetica
+          -V monofont=Menlo
+        )
+        ;;
+      handout)
+        packaged_args=(
+          -V papersize=us-letter
+          -V mainfont=Helvetica
+          -V sansfont=Helvetica
+          -V monofont=Menlo
+        )
+        ;;
+      *)
+        packaged_args=(
+          -V papersize=us-letter
+          -V mainfont=Helvetica
+          -V sansfont=Helvetica
+          -V monofont=Menlo
+        )
+        ;;
+    esac
+
+    (
+      cd "$(dirname "$typst_template_file")"
+      "$pandoc_bin" "$markdown_input" \
+        --from markdown \
+        --pdf-engine="$pdf_engine_bin" \
+        --template "$typst_template_file" \
+        -V "paperdown_style=$style" \
+        "${packaged_args[@]}" \
+        "$@" \
+        -o "$output_path"
+    ) >>"$log_file" 2>&1
+    return $?
+  fi
+
   "$pandoc_bin" "$markdown_input" \
     --from markdown \
     --pdf-engine="$pdf_engine_bin" \
@@ -171,7 +253,7 @@ run_convert() {
   for input_path in "${markdown_inputs[@]}"; do
     output_path="$(next_output_path "$input_path")"
 
-    if render_pdf "$input_path" "$output_path"; then
+    if render_pdf "$input_path" "$output_path" -V paperdown_mode=convert; then
       converted=$((converted + 1))
       echo "converted=$input_path -> $output_path" >> "$log_file"
     else
@@ -193,7 +275,7 @@ run_merge() {
   local skipped=0
   local -a markdown_inputs=()
   local first_input merged_markdown output_path
-  local compiled_title compiled_author compiled_date section_title
+  local compiled_title compiled_subtitle compiled_author compiled_date section_title
   local -a render_args=()
 
   collect_markdown_inputs
@@ -219,10 +301,12 @@ run_merge() {
         printf '\n'
       done
     } > "$merged_markdown"
+    render_args+=(-V paperdown_mode=packet)
   elif [[ "$merge_mode" == "compiled" ]]; then
     compiled_title="$(frontmatter_field "$first_input" title)"
     compiled_author="$(frontmatter_field "$first_input" author)"
     compiled_date="$(frontmatter_field "$first_input" date)"
+    compiled_subtitle="$(frontmatter_field "$first_input" subtitle)"
 
     if [[ -z "$compiled_title" ]]; then
       compiled_title="$(basename "${first_input%.md}")"
@@ -238,12 +322,19 @@ run_merge() {
       done
     } > "$merged_markdown"
 
-    render_args+=(--toc --metadata "title=$compiled_title")
+    render_args+=(--metadata "title=$compiled_title")
+    if [[ "$compiled_table_of_contents_enabled" == "true" ]]; then
+      render_args+=(--toc)
+    fi
+    render_args+=(-V paperdown_mode=compiled -V "paperdown_cover=$compiled_cover_page_enabled")
     if [[ -n "$compiled_author" ]]; then
       render_args+=(--metadata "author=$compiled_author")
     fi
     if [[ -n "$compiled_date" ]]; then
       render_args+=(--metadata "date=$compiled_date")
+    fi
+    if [[ -n "$compiled_subtitle" ]]; then
+      render_args+=(--metadata "subtitle=$compiled_subtitle")
     fi
   else
     rm -f "$merged_markdown"
@@ -310,6 +401,18 @@ while [[ $# -gt 0 ]]; do
       fi
       merge_mode="$1"
       ;;
+    --cover-page)
+      compiled_cover_page_override="true"
+      ;;
+    --no-cover-page)
+      compiled_cover_page_override="false"
+      ;;
+    --table-of-contents|--toc)
+      compiled_table_of_contents_override="true"
+      ;;
+    --no-table-of-contents|--no-toc)
+      compiled_table_of_contents_override="false"
+      ;;
     --help|-h)
       usage
       exit 0
@@ -332,15 +435,34 @@ fi
 
 echo "style=${style}" >> "$log_file"
 echo "repo_root=${repo_root}" >> "$log_file"
+echo "settings_file=${settings_file}" >> "$log_file"
 echo "subcommand=${subcommand}" >> "$log_file"
+
+compiled_cover_page_enabled="$(json_bool_or_default compiledCoverPageEnabled true)"
+compiled_table_of_contents_enabled="$(json_bool_or_default compiledTableOfContentsEnabled true)"
+
+if [[ -n "$compiled_cover_page_override" ]]; then
+  compiled_cover_page_enabled="$compiled_cover_page_override"
+fi
+
+if [[ -n "$compiled_table_of_contents_override" ]]; then
+  compiled_table_of_contents_enabled="$compiled_table_of_contents_override"
+fi
 
 style_file="$repo_root/styles/${style}.yaml"
 pandoc_bin="${PAPERDOWN_PANDOC_BIN:-}"
 pdf_engine_bin="${PAPERDOWN_PDF_ENGINE_BIN:-}"
+typst_style_file="$repo_root/templates/typst/${style}.typ"
 
-if [[ ! -f "$template_file" ]]; then
+if [[ "$runtime_mode" != "packaged" && ! -f "$template_file" ]]; then
   echo "Missing template: $template_file" >&2
   echo "missing_template=$template_file" >> "$log_file"
+  exit 1
+fi
+
+if [[ "$runtime_mode" == "packaged" && ! -f "$typst_template_file" ]]; then
+  echo "Missing typst template: $typst_template_file" >&2
+  echo "missing_template=$typst_template_file" >> "$log_file"
   exit 1
 fi
 
@@ -350,19 +472,44 @@ if [[ ! -f "$style_file" ]]; then
   exit 1
 fi
 
+if [[ "$runtime_mode" == "packaged" && ! -f "$typst_style_file" ]]; then
+  echo "Missing typst style template: $typst_style_file" >&2
+  echo "missing_style_template=$typst_style_file" >> "$log_file"
+  exit 1
+fi
+
 if [[ -z "$pandoc_bin" ]]; then
-  pandoc_bin="$(resolve_command pandoc \
+  if [[ "$runtime_mode" == "packaged" ]]; then
+    pandoc_bin="$vendor_bin_dir/pandoc"
+    if [[ ! -x "$pandoc_bin" ]]; then
+        echo "Missing pandoc executable in packaged runtime" >&2
+        echo "missing_command=packaged-pandoc" >> "$log_file"
+        exit 1
+    fi
+  else
+    # Quick Actions run with a minimal PATH, so this list decides which
+    # pandoc Finder uses. ~/homebrew is the primary install on this machine.
+    pandoc_bin="$(resolve_command pandoc \
+    "$HOME/homebrew/bin/pandoc" \
     /opt/homebrew/bin/pandoc \
-    /usr/local/bin/pandoc \
-    "$HOME/homebrew/bin/pandoc")" || {
+    /usr/local/bin/pandoc)" || {
       echo "Missing pandoc executable" >&2
       echo "missing_command=pandoc" >> "$log_file"
       exit 1
     }
+  fi
 fi
 
 if [[ -z "$pdf_engine_bin" ]]; then
-  pdf_engine_bin="$(resolve_command xelatex \
+  if [[ "$runtime_mode" == "packaged" ]]; then
+    pdf_engine_bin="$vendor_bin_dir/typst"
+    if [[ ! -x "$pdf_engine_bin" ]]; then
+        echo "Missing typst executable in packaged runtime" >&2
+        echo "missing_command=packaged-typst" >> "$log_file"
+        exit 1
+    fi
+  else
+    pdf_engine_bin="$(resolve_command xelatex \
     /Library/TeX/texbin/xelatex \
     /opt/homebrew/bin/xelatex \
     /usr/local/bin/xelatex)" || {
@@ -370,10 +517,14 @@ if [[ -z "$pdf_engine_bin" ]]; then
       echo "missing_command=xelatex" >> "$log_file"
       exit 1
     }
+  fi
 fi
 
+echo "runtime_mode=${runtime_mode}" >> "$log_file"
 echo "pandoc_bin=${pandoc_bin}" >> "$log_file"
 echo "pdf_engine_bin=${pdf_engine_bin}" >> "$log_file"
+echo "compiled_cover_page_enabled=${compiled_cover_page_enabled}" >> "$log_file"
+echo "compiled_table_of_contents_enabled=${compiled_table_of_contents_enabled}" >> "$log_file"
 
 if [[ "$subcommand" == "merge" && -z "$merge_mode" ]]; then
   echo "--mode is required for merge" >&2

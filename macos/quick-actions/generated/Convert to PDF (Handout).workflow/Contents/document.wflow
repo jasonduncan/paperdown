@@ -59,7 +59,7 @@
         <key>ActionParameters</key>
         <dict>
           <key>COMMAND_STRING</key>
-          <string>__PAPERDOWN_REPO_ROOT__/bin/paperdown-quick-action convert --style handout "$@"</string>
+          <string>"__PAPERDOWN_REPO_ROOT__/bin/paperdown-quick-action" convert --style handout "$@"</string>
           <key>CheckedForUserDefaultShell</key>
           <true/>
           <key>inputMethod</key>
